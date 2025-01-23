@@ -1,68 +1,53 @@
-import pytest
-import requests  # Предполагаем, что вы используете requests для отправки запросов
-from data import get_new_user_token  # Импортируем функцию для получения токена
+from sender_stand_request import *
+from data import *
+auth_token = get_new_user_token()
+
 
 def get_kit_body(name):
     return {"name": name}
 
-def positive_assert(kit_body):
-    response = requests.post("URL_вашего_API", json=kit_body, headers={"Authorization": f"Bearer {get_new_user_token()}"})
+def positive_result(kit_body):
+    response = post_new_client_kit(kit_body, auth_token)
     assert response.status_code == 201
     assert response.json()["name"] == kit_body["name"]
 
-def negative_assert_code_400(kit_body):
-    response = requests.post("URL_вашего_API", json=kit_body, headers={"Authorization": f"Bearer {get_new_user_token()}"})
+def negative_result_code_400(kit_body):
+    response = post_new_client_kit(kit_body, auth_token)
     assert response.status_code == 400
 
-def test_minimum_characters():
-    kit_body = get_kit_body("a")
-    positive_assert(kit_body)
+#1.Допустимое количество символов (1):
+def test_valid_name_1_symbol():
+    positive_result(kit_body_1_symbol)
 
-def test_maximum_characters():
-    kit_body = get_kit_body("Тестовое значение для этой проверки будет ниже")
-    positive_assert(kit_body)
+#2.Допустимое количество символов (511):
+def test_valid_name_511_symbol():
+    positive_result(kit_body_511_symbol)
 
-def test_empty_name():
-    kit_body = get_kit_body("")
-    negative_assert_code_400(kit_body)
+#3.Количество символов меньше допустимого (0):
+def test_invalid_name_0_symbol():
+    negative_result_code_400(kit_body_0_symbol)
 
-def test_too_long_name():
-    kit_body = get_kit_body("A" * 513)  # 513 символов
-    negative_assert_code_400(kit_body)
-
-def test_english_letters():
-    kit_body = get_kit_body("QWErty")
-    positive_assert(kit_body)
-
-def test_russian_letters():
-    kit_body = get_kit_body("Маша")
-    positive_assert(kit_body)
-
-def test_special_characters():
-    kit_body = get_kit_body("№%@,")
-    positive_assert(kit_body)
-
-def test_spaces():
-    kit_body = get_kit_body(" Человек и КО ")
-    positive_assert(kit_body)
-
-def test_numbers():
-    kit_body = get_kit_body("123")
-    positive_assert(kit_body)
-
-def test_missing_parameter():
-    kit_body = {}
-    negative_assert_code_400(kit_body)
-
-def test_invalid_parameter_type():
-    kit_body = get_kit_body(123)  # Передаем число вместо строки
-    negative_assert_code_400(kit_body)
-
-# Тестовые значения для проверок №2 и №4
-def test_maximum_characters_test_value():
-    kit_body = get_kit_body("Abcd" * 127)  # 511 символов
-    positive_assert(kit_body)
-
-def test_too_long_name_test_value():
-    kit_body = get_kit_body("Abcd" * 128)  # 512 символов
-    negative_assert_code_400(kit_body)
+#4.Количество символов больше допустимого (512):
+def test_invalid_name_512_symbol():
+    negative_result_code_400(kit_body_512_symbol)
+#5.Разрешены английские буквы:
+def test_valid_name_english_symbol():
+    positive_result(kit_body_english_symbol)
+#6.Разрешены русские буквы:
+def test_valid_name_russian_symbol():
+    positive_result(kit_body_russian_symbol)
+#7.Разрешены спецсимволы:
+def test_valid_name_special_symbol():
+    positive_result(kit_body_special_symbol)
+#8.Разрешены пробелы:
+def test_valid_name_spaces():
+    positive_result(kit_body_spaces)
+#9.Разрешены цифры:
+def test_valid_name_numbers():
+    positive_result(kit_body_numbers)
+#10.Параметр не передан в запросе:
+def test_invalid_name_not_provided():
+    negative_result_code_400(kit_body_not_provided)
+#11.Передан другой тип параметра (число):
+def test_invalid_name_wrong_type():
+    negative_result_code_400(kit_body_wrong)

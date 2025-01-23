@@ -1,1 +1,8 @@
- 
+.pytest/
+   venv/
+   .idea/
+   .pytest_cache/
+   pycache__/
+   
+
+
